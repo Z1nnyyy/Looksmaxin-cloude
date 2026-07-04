@@ -165,6 +165,17 @@
   .chat-bubble{background:var(--surface2); border:1px solid var(--line); border-radius:2px; padding:10px 12px; display:inline-block; max-width:100%;}
   .chat-msg.user .chat-bubble{background:rgba(201,162,39,0.1); border-color:var(--brass-dim);}
 
+  .data-table{width:100%; border-collapse:collapse; font-size:13px; margin-top:10px;}
+  .data-table th{text-align:left; font-family:'JetBrains Mono'; font-size:10.5px; text-transform:uppercase; letter-spacing:0.04em; color:var(--muted); padding:6px 8px; border-bottom:1px solid var(--line);}
+  .data-table td{padding:8px; border-bottom:1px solid var(--line); font-family:'JetBrains Mono';}
+  .data-table tr:last-child td{border-bottom:none;}
+  .tag{display:inline-block; padding:2px 8px; border-radius:2px; font-size:11px; font-family:'JetBrains Mono';}
+  .tag.low{background:rgba(181,83,60,0.15); color:#c97359;}
+  .tag.mid-low{background:rgba(201,162,39,0.15); color:var(--brass);}
+  .tag.ok{background:rgba(111,156,92,0.15); color:#8fbf78;}
+  .tag.mid-high{background:rgba(201,162,39,0.15); color:var(--brass);}
+  .tag.high{background:rgba(181,83,60,0.15); color:#c97359;}
+
 </style>
 </head>
 <body>
@@ -304,6 +315,19 @@
     </div>
 
     <div class="card">
+      <div class="plan-header"><span class="display" style="font-size:16px;">Чёрные точки</span></div>
+      <ul style="font-size:14px; line-height:1.7; padding-left:18px; margin:0; color:var(--text);">
+        <li>Салициловая кислота (BHA) 1-2% в виде тоника/сыворотки — растворяет содержимое пор изнутри, самый рабочий вариант при регулярном использовании</li>
+        <li>Ниацинамид 5-10% — снижает выработку себума и сужает вид пор со временем</li>
+        <li>Глиняная маска раз в неделю — вытягивает излишки кожного сала, не переусердствуй (1 раз в неделю достаточно)</li>
+        <li>Не выдавливай руками — почти всегда остаётся воспаление, расширенная пора и риск занести инфекцию</li>
+        <li>Полоски-пластыри дают разовый косметический эффект, но не решают причину — это скорее "быстрый фикс" перед важным днём</li>
+        <li>Регулярное умывание вечером — снятие макияжа/себума до сна не даёт порам забиваться за ночь</li>
+      </ul>
+      <div class="note">Результат от кислот и ниацинамида заметен через 4-6 недель регулярного применения, не через 3 дня — наберись терпения.</div>
+    </div>
+
+    <div class="card">
       <div class="plan-header"><span class="display" style="font-size:16px;">Волосы</span></div>
       <div class="field">
         <label>Кожа головы</label>
@@ -322,6 +346,18 @@
         </div>
       </div>
       <div id="hairOutput"></div>
+    </div>
+
+    <div class="card">
+      <div class="plan-header"><span class="display" style="font-size:16px;">Перхоть</span></div>
+      <ul style="font-size:14px; line-height:1.7; padding-left:18px; margin:0; color:var(--text);">
+        <li>Шампунь с пиритионом цинка (2% ZPT) — базовый рабочий вариант, использовать 2-3 раза в неделю, оставлять на коже головы 3-5 минут перед смыванием</li>
+        <li>Шампунь с кетоконазолом (1%, безрецептурный) — сильнее предыдущего, если цинк не помог за 2-3 недели</li>
+        <li>Шампунь с дёгтем или салициловой кислотой — альтернатива, если кожа головы больше жирная, чем сухая</li>
+        <li>Не мой голову ежедневно агрессивным шампунем — это сушит кожу и может усиливать шелушение в ответ</li>
+        <li>Меньше горячей воды при мытье — она раздражает кожу головы и провоцирует обострение</li>
+        <li>Если перхоть с покраснением, зудом и жирными желтоватыми чешуйками не проходит за месяц — похоже на себорейный дерматит, тут к дерматологу, а не самолечение</li>
+      </ul>
     </div>
 
     <div class="card">
@@ -401,6 +437,16 @@
         <input type="text" id="logWaketime" placeholder="07:00">
       </div>
       <button class="btn secondary" id="logSleepBtn">Записать сегодня</button>
+
+      <div class="field" style="margin-top:16px;">
+        <label>Период</label>
+        <div class="chip-row" id="chip-sleepperiod">
+          <div class="chip on" data-val="7">Неделя</div>
+          <div class="chip" data-val="30">Месяц</div>
+          <div class="chip" data-val="all">Всё время</div>
+        </div>
+      </div>
+      <div id="sleepSummary"></div>
       <div id="sleepLogOutput"></div>
     </div>
   </section>
@@ -1128,25 +1174,83 @@ renderChecklist();
 
 /* ============ SLEEP: log + streak ============ */
 function getSleepLog(){ return JSON.parse(localStorage.getItem('formaSleepLog') || '[]'); }
+
+function classifySleep(hours){
+  if(hours < 6) return {label:'Слишком мало', cls:'low'};
+  if(hours < 7) return {label:'Маловато', cls:'mid-low'};
+  if(hours <= 9) return {label:'Идеально', cls:'ok'};
+  if(hours <= 10) return {label:'Многовато', cls:'mid-high'};
+  return {label:'Слишком много', cls:'high'};
+}
+
+let sleepPeriod = persistGet('formaSleepPeriod', '7');
+document.getElementById('chip-sleepperiod').querySelectorAll('.chip').forEach(chip=>{
+  chip.classList.toggle('on', chip.dataset.val === sleepPeriod);
+  chip.onclick = () => {
+    document.getElementById('chip-sleepperiod').querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));
+    chip.classList.add('on');
+    sleepPeriod = chip.dataset.val;
+    persistSet('formaSleepPeriod', sleepPeriod);
+    renderSleepLog();
+  };
+});
+
 function renderSleepLog(){
   const log = getSleepLog();
   const out = document.getElementById('sleepLogOutput');
-  if(!log.length){ out.innerHTML = ''; document.getElementById('streakLabel').textContent = '0 дней подряд'; return; }
-  const recent = log.slice(-7).reverse();
-  let html = '<div class="day-block" style="margin-top:14px;">';
-  recent.forEach(entry=>{
+  const summary = document.getElementById('sleepSummary');
+  if(!log.length){
+    out.innerHTML = '';
+    summary.innerHTML = '';
+    document.getElementById('streakLabel').textContent = '0 дней подряд';
+    return;
+  }
+
+  // filter by selected period (based on isoDate when available)
+  const now = new Date();
+  const cutoff = sleepPeriod === 'all' ? null : new Date(now.getTime() - parseInt(sleepPeriod)*86400000);
+  const filtered = log.filter(e => {
+    if(!e.isoDate) return sleepPeriod === 'all'; // old entries without isoDate only show in "all time"
+    return !cutoff || new Date(e.isoDate) >= cutoff;
+  });
+
+  const rows = filtered.map(entry=>{
     const bedM = parseTime(entry.bedtime), wakeM = parseTime(entry.waketime);
-    let duration = '—';
+    let hours = null;
     if(bedM!==null && wakeM!==null){
       let diff = wakeM - bedM; if(diff<0) diff += 1440;
-      duration = (diff/60).toFixed(1)+' ч';
+      hours = diff/60;
     }
-    html += `<div class="ex-row"><span class="ex-name">${entry.date}</span><span class="ex-sets mono">${entry.bedtime}→${entry.waketime} · ${duration}</span></div>`;
-  });
-  html += '</div>';
-  out.innerHTML = html;
+    const cat = hours!==null ? classifySleep(hours) : {label:'—', cls:''};
+    return {entry, hours, cat};
+  }).reverse();
 
-  // streak = consecutive days (from most recent) with duration >= 7h
+  let tableHtml = `<table class="data-table"><thead><tr>
+    <th>Дата</th><th>Отбой</th><th>Подъём</th><th>Часы</th><th>Оценка</th>
+  </tr></thead><tbody>`;
+  rows.forEach(r=>{
+    tableHtml += `<tr>
+      <td>${r.entry.date}</td>
+      <td>${r.entry.bedtime}</td>
+      <td>${r.entry.waketime}</td>
+      <td>${r.hours!==null ? r.hours.toFixed(1) : '—'}</td>
+      <td>${r.cat.cls ? `<span class="tag ${r.cat.cls}">${r.cat.label}</span>` : '—'}</td>
+    </tr>`;
+  });
+  tableHtml += '</tbody></table>';
+  out.innerHTML = tableHtml;
+
+  // summary: average duration + how many nights in each category, for the filtered period
+  const withHours = rows.filter(r => r.hours!==null);
+  if(withHours.length){
+    const avg = withHours.reduce((s,r)=>s+r.hours,0) / withHours.length;
+    const okCount = withHours.filter(r=>r.cat.cls==='ok').length;
+    summary.innerHTML = `<div class="note">Среднее за период: ${avg.toFixed(1)} ч сна за ночь. В норме (7-9ч): ${okCount} из ${withHours.length} ночей.</div>`;
+  } else {
+    summary.innerHTML = '';
+  }
+
+  // streak = consecutive days (from most recent overall entry) with duration >= 7h
   let streak = 0;
   for(let i=log.length-1;i>=0;i--){
     const bedM = parseTime(log[i].bedtime), wakeM = parseTime(log[i].waketime);
@@ -1164,8 +1268,10 @@ document.getElementById('logSleepBtn').onclick = () => {
     return;
   }
   const log = getSleepLog();
-  const dateLabel = new Date().toLocaleDateString('ru-RU', {day:'2-digit', month:'2-digit'});
-  log.push({date: dateLabel, bedtime, waketime});
+  const now = new Date();
+  const dateLabel = now.toLocaleDateString('ru-RU', {day:'2-digit', month:'2-digit', year:'numeric'});
+  const isoDate = now.toISOString().slice(0,10);
+  log.push({date: dateLabel, isoDate, bedtime, waketime});
   localStorage.setItem('formaSleepLog', JSON.stringify(log));
   document.getElementById('logBedtime').value='';
   document.getElementById('logWaketime').value='';
@@ -1228,7 +1334,7 @@ document.getElementById('clearKeyBtn').onclick = () => {
 document.getElementById('resetAllBtn').onclick = () => {
   if(!confirm('Точно удалить все сохранённые данные приложения (тренировки, питание, сон, уход, чат, ключ)? Это необратимо.')) return;
   const keys = ['formaAiSettings','formaWorkoutState','formaNutriChips','formaNutritionInputs',
-    'formaCareState','formaFaceState','formaSleepChecklist','formaSleepLog','formaChatHistory'];
+    'formaCareState','formaFaceState','formaSleepChecklist','formaSleepLog','formaSleepPeriod','formaChatHistory'];
   keys.forEach(k => localStorage.removeItem(k));
   location.reload();
 };
@@ -1409,7 +1515,13 @@ async function generateImageGemini(apiKey, model, base64, mime){
       generationConfig: { responseModalities: ['TEXT','IMAGE'] }
     })
   });
-  if(!res.ok) throw new Error(`Gemini API: ${res.status} ${await res.text()}`);
+  if(!res.ok){
+    const errText = await res.text();
+    if(res.status === 429 && /free_tier_requests[\s\S]*?limit["\s:]*0/.test(errText)){
+      throw new Error('Генерация изображений у Gemini не входит в бесплатный лимит вообще (лимит 0) — в отличие от текстовых запросов, это платная функция даже на бесплатном аккаунте. Чтобы она заработала, нужно включить биллинг в Google Cloud (привязать карту) — платишь только по факту, доли цента за картинку.');
+    }
+    throw new Error(`Gemini API: ${res.status} ${errText}`);
+  }
   const data = await res.json();
   const parts = data.candidates?.[0]?.content?.parts || [];
   const imgPart = parts.find(p => p.inlineData?.data || p.inline_data?.data);
