@@ -1,0 +1,1618 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>ФОРМА — тренировки и разбор</title>
+<meta name="theme-color" content="#16171A">
+
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Форма">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#16171A;
+    --surface:#1E2023;
+    --surface2:#26282C;
+    --line:#333539;
+    --text:#EDEAE3;
+    --muted:#8B8D93;
+    --brass:#C9A227;
+    --brass-dim:#8f7220;
+    --olive:#5C6E52;
+    --danger:#B5533C;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Inter',system-ui,sans-serif;
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  .mono{font-family:'JetBrains Mono',monospace;}
+  .display{font-family:'Oswald',sans-serif; text-transform:uppercase; letter-spacing:0.02em;}
+
+  header.top{
+    position:sticky; top:0; z-index:20;
+    background:rgba(22,23,26,0.92);
+    backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--line);
+    padding:14px 16px;
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .brand{display:flex; align-items:baseline; gap:8px;}
+  .brand .mark{
+    width:10px;height:10px;background:var(--brass);
+    display:inline-block; transform:rotate(45deg);
+  }
+  .brand .name{font-family:'Oswald'; font-weight:700; font-size:20px; letter-spacing:0.06em; text-transform:uppercase;}
+  .brand .sub{color:var(--muted); font-size:11px; font-family:'JetBrains Mono'; letter-spacing:0.03em;}
+
+  nav.tabs{
+    display:flex; gap:4px; padding:8px 16px; background:var(--bg);
+    border-bottom:1px solid var(--line); position:sticky; top:57px; z-index:19;
+    overflow-x:auto;
+  }
+  .tab-btn{
+    background:transparent; border:1px solid transparent; color:var(--muted);
+    font-family:'Oswald'; text-transform:uppercase; letter-spacing:0.04em;
+    font-size:13px; padding:9px 14px; cursor:pointer; white-space:nowrap;
+    border-radius:2px;
+  }
+  .tab-btn.active{color:var(--bg); background:var(--brass); font-weight:600;}
+  .tab-btn:not(.active):hover{color:var(--text); border-color:var(--line);}
+
+  main{max-width:760px; margin:0 auto; padding:20px 16px 80px;}
+  .view{display:none;}
+  .view.active{display:block;}
+
+  .card{
+    background:var(--surface); border:1px solid var(--line);
+    border-radius:3px; padding:18px; margin-bottom:14px;
+  }
+  h1.page-title{font-family:'Oswald'; text-transform:uppercase; font-size:26px; letter-spacing:0.03em; margin:4px 0 4px;}
+  p.page-lead{color:var(--muted); font-size:14px; margin:0 0 20px; line-height:1.5;}
+
+  .field{margin-bottom:14px;}
+  .field label{display:block; font-size:11px; text-transform:uppercase; letter-spacing:0.05em; color:var(--muted); margin-bottom:6px; font-family:'JetBrains Mono';}
+  select, input[type=text], input[type=password], textarea{
+    width:100%; background:var(--surface2); border:1px solid var(--line); color:var(--text);
+    padding:11px 12px; border-radius:2px; font-size:14px; font-family:'Inter';
+  }
+  select:focus, input:focus, textarea:focus{outline:none; border-color:var(--brass);}
+
+  .chip-row{display:flex; flex-wrap:wrap; gap:8px;}
+  .chip{
+    background:var(--surface2); border:1px solid var(--line); color:var(--muted);
+    padding:8px 13px; border-radius:2px; font-size:13px; cursor:pointer; font-family:'JetBrains Mono';
+  }
+  .chip.on{background:var(--brass); color:var(--bg); border-color:var(--brass); font-weight:700;}
+
+  .btn{
+    background:var(--brass); color:var(--bg); border:none; padding:13px 18px;
+    font-family:'Oswald'; text-transform:uppercase; letter-spacing:0.04em; font-weight:600;
+    font-size:14px; cursor:pointer; border-radius:2px; width:100%;
+  }
+  .btn:hover{background:#dbb32c;}
+  .btn:disabled{background:var(--surface2); color:var(--muted); cursor:not-allowed;}
+  .btn.secondary{background:transparent; border:1px solid var(--line); color:var(--text);}
+  .btn.secondary:hover{border-color:var(--brass); color:var(--brass);}
+
+  .plan-header{display:flex; align-items:baseline; justify-content:space-between; margin-bottom:6px;}
+  .plan-header .num{font-family:'Oswald'; font-size:15px; color:var(--brass); letter-spacing:0.04em;}
+  .ex-row{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:10px 0; border-bottom:1px solid var(--line); font-size:14px;
+  }
+  .ex-row:last-child{border-bottom:none;}
+  .ex-name{flex:1;}
+  .ex-sets{font-family:'JetBrains Mono'; color:var(--brass); font-size:13px; white-space:nowrap; margin-left:10px;}
+  .day-block{margin-bottom:18px;}
+  .day-title{font-family:'Oswald'; text-transform:uppercase; font-size:15px; color:var(--text); margin-bottom:4px; padding-bottom:6px; border-bottom:2px solid var(--brass);}
+
+  .note{
+    font-size:12.5px; color:var(--muted); line-height:1.5; background:var(--surface2);
+    border-left:2px solid var(--brass); padding:10px 12px; border-radius:0 2px 2px 0; margin-top:14px;
+  }
+  .note.warn{border-left-color:var(--danger);}
+
+  .provider-row{display:flex; gap:8px; margin-bottom:14px;}
+  .provider-btn{
+    flex:1; background:var(--surface2); border:1px solid var(--line); color:var(--muted);
+    padding:12px 8px; text-align:center; cursor:pointer; border-radius:2px; font-size:13px;
+    font-family:'JetBrains Mono';
+  }
+  .provider-btn.on{border-color:var(--brass); color:var(--brass); background:rgba(201,162,39,0.08);}
+
+  .upload-box{
+    border:1px dashed var(--line); border-radius:3px; padding:26px 16px; text-align:center;
+    cursor:pointer; color:var(--muted); font-size:13px;
+  }
+  .upload-box:hover{border-color:var(--brass); color:var(--text);}
+  .preview-img{max-width:100%; border-radius:3px; margin-bottom:12px; display:block;}
+
+  .result-block h3{font-family:'Oswald'; text-transform:uppercase; font-size:14px; color:var(--brass); letter-spacing:0.04em; margin:18px 0 6px;}
+  .result-block h3:first-child{margin-top:0;}
+  .result-block p{font-size:14px; line-height:1.6; margin:0 0 8px; color:var(--text);}
+  .result-block ul{margin:0 0 8px; padding-left:18px;}
+  .result-block li{font-size:14px; line-height:1.6; margin-bottom:4px;}
+
+  .spinner{
+    width:16px; height:16px; border:2px solid rgba(22,23,26,0.3); border-top-color:var(--bg);
+    border-radius:50%; display:inline-block; animation:spin 0.7s linear infinite; vertical-align:-3px; margin-right:8px;
+  }
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  .status-dot{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:6px;}
+  .status-dot.ok{background:#6f9c5c;}
+  .status-dot.off{background:var(--muted);}
+
+  footer{text-align:center; color:var(--muted); font-size:11px; padding:20px; font-family:'JetBrains Mono';}
+
+  .chat-msg{margin-bottom:12px; font-size:14px; line-height:1.5;}
+  .chat-msg .who{font-family:'JetBrains Mono'; font-size:10.5px; text-transform:uppercase; letter-spacing:0.05em; color:var(--muted); margin-bottom:3px;}
+  .chat-msg.user .who{color:var(--brass);}
+  .chat-bubble{background:var(--surface2); border:1px solid var(--line); border-radius:2px; padding:10px 12px; display:inline-block; max-width:100%;}
+  .chat-msg.user .chat-bubble{background:rgba(201,162,39,0.1); border-color:var(--brass-dim);}
+
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="brand">
+    <span class="mark"></span>
+    <span class="name">Форма</span>
+  </div>
+  <span class="sub" id="providerStatus"><span class="status-dot off"></span>ключ не задан</span>
+</header>
+
+<nav class="tabs">
+  <button class="tab-btn active" data-view="workouts">Тренировки</button>
+  <button class="tab-btn" data-view="nutrition">Питание</button>
+  <button class="tab-btn" data-view="care">Уход</button>
+  <button class="tab-btn" data-view="face">Лицо</button>
+  <button class="tab-btn" data-view="sleep">Сон</button>
+  <button class="tab-btn" data-view="assess">Разбор</button>
+  <button class="tab-btn" data-view="chat">Чат</button>
+  <button class="tab-btn" data-view="settings">Настройки</button>
+</nav>
+
+<main>
+
+  <!-- ================= WORKOUTS VIEW ================= -->
+  <section class="view active" id="view-workouts">
+    <h1 class="page-title">Готовые программы</h1>
+    <p class="page-lead">Выбери параметры — план соберётся автоматически. Никакого ключа для этого не нужно.</p>
+
+    <div class="card">
+      <div class="field">
+        <label>Место</label>
+        <div class="chip-row" id="chip-location">
+          <div class="chip on" data-val="gym">Зал</div>
+          <div class="chip" data-val="home">Дома</div>
+          <div class="chip" data-val="turnik">Турник</div>
+        </div>
+      </div>
+      <div class="field">
+        <label>Цель</label>
+        <div class="chip-row" id="chip-goal">
+          <div class="chip on" data-val="mass">Масса</div>
+          <div class="chip" data-val="cut">Рельеф</div>
+          <div class="chip" data-val="loss">Похудение</div>
+          <div class="chip" data-val="general">Общая форма</div>
+        </div>
+      </div>
+      <div class="field">
+        <label>Уровень</label>
+        <div class="chip-row" id="chip-level">
+          <div class="chip on" data-val="beginner">Новичок</div>
+          <div class="chip" data-val="inter">Средний</div>
+          <div class="chip" data-val="advanced">Продвинутый</div>
+        </div>
+      </div>
+      <div class="field">
+        <label>Дней в неделю</label>
+        <div class="chip-row" id="chip-days">
+          <div class="chip" data-val="3">3</div>
+          <div class="chip on" data-val="4">4</div>
+          <div class="chip" data-val="5">5</div>
+        </div>
+      </div>
+      <button class="btn" id="buildPlanBtn">Собрать план</button>
+    </div>
+
+    <div id="planOutput"></div>
+  </section>
+
+  <!-- ================= NUTRITION VIEW ================= -->
+  <section class="view" id="view-nutrition">
+    <h1 class="page-title">Питание</h1>
+    <p class="page-lead">Прикидочный калькулятор калорий и БЖУ по формуле Миффлина-Сан Жеора. Это ориентир, не медицинское назначение — при хронических заболеваниях лучше свериться с врачом или диетологом.</p>
+
+    <div class="card">
+      <div class="field">
+        <label>Пол</label>
+        <div class="chip-row" id="chip-sex">
+          <div class="chip on" data-val="m">Мужской</div>
+          <div class="chip" data-val="f">Женский</div>
+        </div>
+      </div>
+      <div class="field"><label>Возраст</label><input type="text" id="nAge" placeholder="20"></div>
+      <div class="field"><label>Рост, см</label><input type="text" id="nHeight" placeholder="178"></div>
+      <div class="field"><label>Вес, кг</label><input type="text" id="nWeight" placeholder="68"></div>
+      <div class="field">
+        <label>Активность</label>
+        <div class="chip-row" id="chip-activity">
+          <div class="chip" data-val="1.2">Сидячая</div>
+          <div class="chip on" data-val="1.55">Средняя (3-5 трен/нед)</div>
+          <div class="chip" data-val="1.75">Высокая</div>
+        </div>
+      </div>
+      <div class="field">
+        <label>Цель</label>
+        <div class="chip-row" id="chip-ngoal">
+          <div class="chip on" data-val="mass">Набор массы</div>
+          <div class="chip" data-val="cut">Рельеф / похудение</div>
+          <div class="chip" data-val="maintain">Поддержание</div>
+        </div>
+      </div>
+      <button class="btn" id="calcNutritionBtn">Рассчитать</button>
+      <div id="nutritionOutput"></div>
+    </div>
+
+    <div class="card">
+      <div class="plan-header"><span class="display" style="font-size:16px;">Общие принципы</span></div>
+      <ul style="font-size:14px; line-height:1.7; padding-left:18px; margin:0; color:var(--text);">
+        <li>Белок в каждый приём пищи: мясо, рыба, яйца, творог, бобовые</li>
+        <li>Сложные углеводы вокруг тренировки: крупы, картофель, цельнозерновой хлеб</li>
+        <li>Овощи и клетчатка — минимум 400 г в день, помогают и с пищеварением, и с отёчностью</li>
+        <li>Вода — 30-35 мл на кг веса в день, больше в жару и после тренировок</li>
+        <li>Меньше соли, алкоголя и ультра-обработанной еды вечером — заметно на лице уже на следующее утро</li>
+        <li>Не нужно взвешивать каждый грамм — ориентируйся на диапазоны и самочувствие</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ================= CARE VIEW ================= -->
+  <section class="view" id="view-care">
+    <h1 class="page-title">Уход</h1>
+    <p class="page-lead">Базовые рутины по коже, волосам и бороде. Это общие ориентиры — при сильных высыпаниях, дерматите или выпадении волос лучше к дерматологу/трихологу, а не по интернет-схеме.</p>
+
+    <div class="card">
+      <div class="plan-header"><span class="display" style="font-size:16px;">Кожа лица</span></div>
+      <div class="field">
+        <label>Тип кожи</label>
+        <div class="chip-row" id="chip-skintype">
+          <div class="chip on" data-val="normal">Нормальная</div>
+          <div class="chip" data-val="oily">Жирная</div>
+          <div class="chip" data-val="dry">Сухая</div>
+          <div class="chip" data-val="combo">Комбинированная</div>
+        </div>
+      </div>
+      <div id="skinOutput"></div>
+    </div>
+
+    <div class="card">
+      <div class="plan-header"><span class="display" style="font-size:16px;">Волосы</span></div>
+      <div class="field">
+        <label>Кожа головы</label>
+        <div class="chip-row" id="chip-scalp">
+          <div class="chip on" data-val="normal">Нормальная</div>
+          <div class="chip" data-val="oily">Жирная</div>
+          <div class="chip" data-val="dry">Сухая</div>
+        </div>
+      </div>
+      <div class="field">
+        <label>Тип волос</label>
+        <div class="chip-row" id="chip-hairtype">
+          <div class="chip on" data-val="straight">Прямые</div>
+          <div class="chip" data-val="wavy">Волнистые</div>
+          <div class="chip" data-val="curly">Кудрявые</div>
+        </div>
+      </div>
+      <div id="hairOutput"></div>
+    </div>
+
+    <div class="card">
+      <div class="plan-header"><span class="display" style="font-size:16px;">Борода</span></div>
+      <ul style="font-size:14px; line-height:1.7; padding-left:18px; margin:0; color:var(--text);">
+        <li>Мыть отдельным средством (шампунь для бороды/мягкое очищение), обычная гель для душа сушит</li>
+        <li>Масло или бальзам для бороды после мытья — убирает зуд и делает волос мягче</li>
+        <li>Расчёсывай по направлению роста, это же помогает приучить волос лежать ровно</li>
+        <li>Подравнивай контур (щёки, шея) раз в 1-2 недели — аккуратные границы визуально организуют даже отросшую бороду</li>
+        <li>При сильном зуде и перхоти в бороде — это может быть себорейный дерматит, тут лучше к дерматологу</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ================= FACE VIEW ================= -->
+  <section class="view" id="view-face">
+    <h1 class="page-title">Лицо: скулы и отёчность</h1>
+    <p class="page-lead">Честно: форма скул на 90% определяется костной структурой и % жира на лице — упражнения её не изменят. Но они тонизируют мышцы щёк и челюсти, а массаж/дренаж реально снимают утреннюю отёчность за счёт оттока жидкости. Это рабочий комплекс, а не чудо-решение.</p>
+
+    <div class="card">
+      <div class="field">
+        <label>Что беспокоит</label>
+        <div class="chip-row" id="chip-facegoal">
+          <div class="chip on" data-val="cheeks">Выразить скулы</div>
+          <div class="chip" data-val="puffy">Снять отёчность</div>
+          <div class="chip" data-val="jaw">Чёткость челюсти</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="faceOutput"></div>
+
+    <div class="card">
+      <div class="field" style="margin-bottom:0;">
+        <label>Что реально влияет на отёчность (не упражнения)</label>
+        <ul style="font-size:14px; line-height:1.7; padding-left:18px; margin:0; color:var(--text);">
+          <li>Сон 7-9 часов и подушка чуть выше обычного — жидкость меньше скапливается в лице</li>
+          <li>Меньше соли и алкоголя вечером — главная причина утренней отёчности</li>
+          <li>Стакан воды с утра и умывание прохладной водой — разгоняет отёк быстрее любых упражнений</li>
+          <li>Снижение % жира в целом по телу — лицо реагирует одним из первых</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= SLEEP VIEW ================= -->
+  <section class="view" id="view-sleep">
+    <h1 class="page-title">Режим сна</h1>
+    <p class="page-lead">Недосып бьёт по коже и отёчности сильнее, чем что-либо ещё в этом приложении. Здесь — калькулятор времени отбоя, чек-лист и трекер, чтобы держать режим стабильным.</p>
+
+    <div class="card">
+      <div class="field">
+        <label>Во сколько нужно проснуться</label>
+        <input type="text" id="wakeTimeInput" placeholder="07:00">
+      </div>
+      <button class="btn" id="calcSleepBtn">Посчитать время отбоя</button>
+      <div id="sleepCalcOutput"></div>
+      <div class="note">Расчёт по циклам сна ~90 минут + 15 минут на засыпание. Ложиться в момент между циклами — просыпаться легче, чем посреди цикла.</div>
+    </div>
+
+    <div class="card">
+      <div class="plan-header"><span class="display" style="font-size:16px;">Чек-лист перед сном</span></div>
+      <div id="sleepChecklist"></div>
+    </div>
+
+    <div class="card">
+      <div class="plan-header">
+        <span class="display" style="font-size:16px;">Трекер режима</span>
+        <span class="num mono" id="streakLabel">0 дней подряд</span>
+      </div>
+      <div class="field">
+        <label>Во сколько лёг вчера</label>
+        <input type="text" id="logBedtime" placeholder="23:30">
+      </div>
+      <div class="field">
+        <label>Во сколько встал сегодня</label>
+        <input type="text" id="logWaketime" placeholder="07:00">
+      </div>
+      <button class="btn secondary" id="logSleepBtn">Записать сегодня</button>
+      <div id="sleepLogOutput"></div>
+    </div>
+  </section>
+
+  <!-- ================= ASSESS VIEW ================= -->
+  <section class="view" id="view-assess">
+    <h1 class="page-title">Разбор внешности</h1>
+    <p class="page-lead">Загрузи фото — модель разберёт причёску, кожу, растительность на лице и стиль, и предложит конкретные шаги. Нужен свой API-ключ (вкладка «Настройки»).</p>
+
+    <div class="card">
+      <div class="field">
+        <label>Фото</label>
+        <div id="uploadZone" class="upload-box">Нажми, чтобы выбрать фото (лицо + верх тела, дневной свет)</div>
+        <input type="file" id="fileInput" accept="image/*" style="display:none;">
+      </div>
+      <div id="previewWrap"></div>
+      <button class="btn" id="assessBtn" disabled>Сначала выбери фото</button>
+      <div class="note" id="noKeyNote" style="display:none;">Ключ не задан. Перейди в «Настройки» и вставь свой API-ключ — без этого запрос не отправится.</div>
+    </div>
+
+    <div class="card" id="resultCard" style="display:none;">
+      <div class="result-block" id="resultBlock"></div>
+      <button class="btn secondary" id="visualizeBtn" style="margin-top:14px;">Показать вариант с улучшениями</button>
+      <div class="note" id="visualizeNote" style="display:none;"></div>
+      <div id="visualizeOutput"></div>
+    </div>
+  </section>
+
+  <!-- ================= CHAT VIEW ================= -->
+  <section class="view" id="view-chat">
+    <h1 class="page-title">Чат с ИИ</h1>
+    <p class="page-lead">Спроси что угодно про стрижку, кожу, стиль, тренировки, осанку — модель настроена именно на тему ухода за собой. Использует ключ из «Настроек».</p>
+
+    <div class="card" id="chatCard">
+      <div id="chatMessages" style="max-height:50vh; overflow-y:auto; margin-bottom:12px;"></div>
+      <div class="note" id="chatNoKeyNote" style="display:none;">Ключ не задан. Перейди в «Настройки» и вставь свой API-ключ.</div>
+      <div style="display:flex; gap:8px;">
+        <input type="text" id="chatInput" placeholder="Например: какая стрижка подойдёт под овальное лицо?" style="flex:1;">
+        <button class="btn" id="chatSendBtn" style="width:auto; padding:11px 16px;">→</button>
+      </div>
+      <button class="btn secondary" id="chatClearBtn" style="margin-top:8px;">Очистить чат</button>
+    </div>
+  </section>
+
+  <!-- ================= SETTINGS VIEW ================= -->
+  <section class="view" id="view-settings">
+    <h1 class="page-title">Настройки ИИ</h1>
+    <p class="page-lead">Ключ хранится только в этом браузере (localStorage) и никуда не отправляется, кроме выбранного провайдера напрямую с твоего устройства.</p>
+
+    <div class="card">
+      <div class="field">
+        <label>Провайдер</label>
+        <div class="provider-row" id="providerRow">
+          <div class="provider-btn on" data-val="anthropic">Claude</div>
+          <div class="provider-btn" data-val="gemini">Gemini</div>
+          <div class="provider-btn" data-val="openai">GPT</div>
+        </div>
+      </div>
+      <div class="field">
+        <label>API-ключ</label>
+        <input type="password" id="apiKeyInput" placeholder="вставь ключ сюда">
+      </div>
+      <div class="field">
+        <label>Модель (можно оставить по умолчанию)</label>
+        <input type="text" id="modelInput">
+      </div>
+      <div class="field" id="imageModelField">
+        <label>Модель для генерации изображений (только Gemini/GPT)</label>
+        <input type="text" id="imageModelInput">
+      </div>
+      <button class="btn" id="saveKeyBtn">Сохранить</button>
+      <button class="btn secondary" id="clearKeyBtn" style="margin-top:8px;">Удалить сохранённый ключ</button>
+
+      <div class="note" id="corsNote"></div>
+    </div>
+
+    <div class="card">
+      <div class="field" style="margin-bottom:0;">
+        <label>Где взять ключ</label>
+        <p style="font-size:13px; color:var(--muted); line-height:1.6; margin:0;">
+          Claude — console.anthropic.com (раздел API Keys).<br>
+          Gemini — aistudio.google.com/apikey (есть бесплатный лимит).<br>
+          GPT — platform.openai.com/api-keys.
+        </p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="field" style="margin-bottom:0;">
+        <label>Хранение данных</label>
+        <p style="font-size:13px; color:var(--muted); line-height:1.6; margin:0 0 12px;">
+          Всё — выбранные тренировки, расчёт питания, чек-лист и лог сна, разбор кожи/волос, история чата — сохраняется прямо в этом браузере (localStorage) и остаётся при закрытии и повторном открытии сайта. Никуда на сервер не уходит. Если очистишь данные браузера, откроешь сайт в другом браузере или на другом устройстве — всё начнётся заново.
+        </p>
+        <button class="btn secondary" id="resetAllBtn">Сбросить все данные приложения</button>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>сделано в чате с Claude · данные хранятся только у тебя в браузере</footer>
+
+<script>
+/* ============ STATE ============ */
+function persistGet(key, fallback){
+  try{ const v = JSON.parse(localStorage.getItem(key)); return v===null||v===undefined ? fallback : v; }
+  catch(e){ return fallback; }
+}
+function persistSet(key, value){
+  try{ localStorage.setItem(key, JSON.stringify(value)); } catch(e){ /* storage full or blocked */ }
+}
+
+const state = Object.assign(
+  { location: 'gym', goal: 'mass', level: 'beginner', days: '4', photoBase64: null, photoMime: null },
+  persistGet('formaWorkoutState', {})
+);
+function saveWorkoutState(){
+  persistSet('formaWorkoutState', {location: state.location, goal: state.goal, level: state.level, days: state.days});
+}
+function applyChipUIFromState(containerId, stateKey, stateObj){
+  const container = document.getElementById(containerId);
+  container.querySelectorAll('.chip').forEach(c=>{
+    c.classList.toggle('on', c.dataset.val === String(stateObj[stateKey]));
+  });
+}
+
+const PROVIDER_DEFAULTS = {
+  anthropic: { model: 'claude-sonnet-4-5-20250929', label: 'Claude', imageModel: null },
+  gemini:    { model: 'gemini-2.0-flash', label: 'Gemini', imageModel: 'gemini-2.0-flash-preview-image-generation' },
+  openai:    { model: 'gpt-4o-mini', label: 'GPT', imageModel: 'gpt-image-1' },
+};
+
+const CORS_NOTES = {
+  anthropic: 'Claude отвечает на прямые запросы из браузера, но не все ключи это разрешают по умолчанию — если запрос падает с ошибкой CORS, это оно.',
+  gemini: 'Gemini обычно нормально работает с прямыми запросами из браузера.',
+  openai: 'У OpenAI прямые запросы из браузера иногда блокируются политикой CORS — если не сработает, попробуй Gemini или Claude.',
+};
+
+/* ============ TABS ============ */
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.onclick = () => {
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('view-'+btn.dataset.view).classList.add('active');
+  };
+});
+
+/* ============ CHIP SELECTORS (workouts) ============ */
+function wireChips(containerId, stateKey){
+  const container = document.getElementById(containerId);
+  container.querySelectorAll('.chip').forEach(chip=>{
+    chip.onclick = () => {
+      container.querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));
+      chip.classList.add('on');
+      state[stateKey] = chip.dataset.val;
+      saveWorkoutState();
+      buildPlan();
+    };
+  });
+}
+wireChips('chip-location','location');
+wireChips('chip-goal','goal');
+wireChips('chip-level','level');
+wireChips('chip-days','days');
+applyChipUIFromState('chip-location','location', state);
+applyChipUIFromState('chip-goal','goal', state);
+applyChipUIFromState('chip-level','level', state);
+applyChipUIFromState('chip-days','days', state);
+
+/* ============ EXERCISE LIBRARY ============ */
+// Each split defined per location+goal, with day templates. Volume adjusted by level.
+const LIBRARY = {
+  gym: {
+    mass: [
+      {day:'День 1 — Грудь / Трицепс', ex:[
+        ['Жим штанги лёжа','4×6-8'],['Жим гантелей на наклонной','3×8-10'],
+        ['Отжимания на брусьях','3×8-10'],['Разгибание рук на блоке','3×10-12'],
+        ['Французский жим','3×10']]},
+      {day:'День 2 — Спина / Бицепс', ex:[
+        ['Становая тяга','4×5-6'],['Тяга штанги в наклоне','4×8'],
+        ['Подтягивания','3×макс'],['Подъём штанги на бицепс','3×10'],
+        ['Молотки с гантелями','3×10']]},
+      {day:'День 3 — Ноги', ex:[
+        ['Приседания со штангой','4×6-8'],['Жим ногами','3×10'],
+        ['Румынская тяга','3×8-10'],['Разгибание ног','3×12'],
+        ['Подъём на носки','4×15']]},
+      {day:'День 4 — Плечи / Пресс', ex:[
+        ['Жим штанги стоя','4×8'],['Махи гантелями в стороны','3×12'],
+        ['Тяга штанги к подбородку','3×10'],['Скручивания','3×15'],
+        ['Подъём ног в висе','3×12']]},
+      {day:'День 5 — Общий объём', ex:[
+        ['Жим гантелей лёжа','3×10'],['Тяга верхнего блока','3×10'],
+        ['Приседания в машине Смита','3×10'],['Подъём на бицепс','3×12'],
+        ['Разгибание на трицепс','3×12']]},
+    ],
+    cut: [
+      {day:'День 1 — Верх (сила+объём)', ex:[
+        ['Жим штанги лёжа','4×8'],['Тяга штанги в наклоне','4×8'],
+        ['Жим гантелей сидя','3×10'],['Тяга блока к поясу','3×12'],
+        ['Скручивания на блоке','3×15']]},
+      {day:'День 2 — Низ + кардио', ex:[
+        ['Приседания','4×8'],['Румынская тяга','3×10'],
+        ['Выпады с гантелями','3×12'],['Велотренажёр','15 мин'],
+        ['Планка','3×45с']]},
+      {day:'День 3 — Круговая (метаболизм)', ex:[
+        ['Гребной тренажёр','5 мин'],['Берпи','4×12'],
+        ['Тяга гантели в наклоне','3×12'],['Приседания с прыжком','3×12'],
+        ['Скручивания','3×20']]},
+      {day:'День 4 — Верх (объём)', ex:[
+        ['Жим гантелей на наклонной','3×12'],['Подтягивания в гравитроне','3×10'],
+        ['Разведение гантелей в стороны','3×12'],['Отжимания на брусьях','3×12'],
+        ['Подъём ног в висе','3×15']]},
+      {day:'День 5 — Низ + кардио', ex:[
+        ['Жим ногами','4×12'],['Гакк-приседания','3×12'],
+        ['Ягодичный мостик','3×15'],['Бег/эллипс','20 мин'],
+        ['Планка боковая','3×30с']]},
+    ],
+    general: [
+      {day:'День 1 — Всё тело A', ex:[
+        ['Приседания','3×10'],['Жим штанги лёжа','3×10'],
+        ['Тяга блока к поясу','3×10'],['Планка','3×40с']]},
+      {day:'День 2 — Всё тело B', ex:[
+        ['Румынская тяга','3×10'],['Жим гантелей сидя','3×10'],
+        ['Подтягивания в гравитроне','3×10'],['Скручивания','3×15']]},
+      {day:'День 3 — Кардио + пресс', ex:[
+        ['Эллипс/беговая дорожка','20 мин'],['Скручивания','3×20'],
+        ['Подъём ног','3×15'],['Растяжка','10 мин']]},
+      {day:'День 4 — Всё тело C', ex:[
+        ['Жим ногами','3×12'],['Тяга штанги в наклоне','3×10'],
+        ['Жим гантелей на наклонной','3×10'],['Планка','3×45с']]},
+      {day:'День 5 — Лёгкая (техника)', ex:[
+        ['Приседания с пустым грифом','3×12'],['Отжимания','3×макс'],
+        ['Тяга резины','3×15'],['Кардио','15 мин']]},
+    ],
+    loss: [
+      {day:'День 1 — Силовая база + кардио', ex:[
+        ['Приседания','4×12'],['Жим гантелей лёжа','3×12'],
+        ['Тяга блока к поясу','3×12'],['Гребной тренажёр','10 мин'],
+        ['Планка','3×45с']]},
+      {day:'День 2 — Интервальное кардио', ex:[
+        ['Разминка на дорожке','5 мин'],['Спринты 30с/отдых 60с','8 повт'],
+        ['Скручивания','3×20'],['Заминка (ходьба)','5 мин']]},
+      {day:'День 3 — Силовая (низ тела)', ex:[
+        ['Румынская тяга','3×12'],['Выпады с гантелями','3×12'],
+        ['Жим ногами','3×15'],['Велотренажёр','10 мин']]},
+      {day:'День 4 — Круговая (жиросжигание)', ex:[
+        ['Берпи','4×12'],['Тяга гантели в наклоне','3×12'],
+        ['Приседания с прыжком','3×15'],['Скакалка','3×1 мин'],
+        ['Планка боковая','3×30с']]},
+      {day:'День 5 — Силовая (верх тела)', ex:[
+        ['Жим штанги стоя','3×12'],['Подтягивания в гравитроне','3×10'],
+        ['Отжимания на брусьях','3×макс'],['Гребной тренажёр','10 мин']]},
+    ],
+  },
+  home: {
+    mass: [
+      {day:'День 1 — Грудь / Трицепс', ex:[
+        ['Отжимания (широкая постановка)','4×макс'],['Отжимания с ногами на возвышении','3×макс'],
+        ['Отжимания узким хватом','3×макс'],['Разгибание рук с эспандером','3×15']]},
+      {day:'День 2 — Спина / Бицепс', ex:[
+        ['Подтягивания на турнике','4×макс'],['Тяга гантели в наклоне','3×12'],
+        ['Австралийские подтягивания','3×12'],['Подъём гантелей на бицепс','3×12']]},
+      {day:'День 3 — Ноги', ex:[
+        ['Приседания с рюкзаком','4×15'],['Болгарские выпады','3×12'],
+        ['Ягодичный мостик','3×15'],['Подъём на носки','4×20']]},
+      {day:'День 4 — Плечи / Пресс', ex:[
+        ['Отжимания в стойке у стены','3×макс'],['Махи гантелями в стороны','3×12'],
+        ['Скручивания','3×20'],['Планка','3×50с']]},
+    ],
+    cut: [
+      {day:'День 1 — Круговая A', ex:[
+        ['Берпи','4×12'],['Отжимания','4×макс'],
+        ['Приседания с прыжком','3×15'],['Планка','3×45с']]},
+      {day:'День 2 — Кардио + пресс', ex:[
+        ['Бег/скакалка','20 мин'],['Скручивания','3×20'],
+        ['Подъём ног лёжа','3×15'],['Боковая планка','3×30с']]},
+      {day:'День 3 — Круговая B', ex:[
+        ['Выпады с прыжком','4×12'],['Отжимания узким хватом','3×макс'],
+        ['Горизонтальная тяга (полотенце/дверь)','3×12'],['Альпинист','3×30с']]},
+      {day:'День 4 — Кардио + низ', ex:[
+        ['Приседания','4×20'],['Ягодичный мостик','3×15'],
+        ['Скакалка','15 мин'],['Планка','3×50с']]},
+    ],
+    general: [
+      {day:'День 1 — Всё тело A', ex:[
+        ['Отжимания','3×макс'],['Приседания','3×15'],
+        ['Подтягивания/тяга полотенцем','3×макс'],['Планка','3×40с']]},
+      {day:'День 2 — Кардио', ex:[
+        ['Бег/быстрая ходьба','25 мин'],['Скручивания','3×15'],['Растяжка','10 мин']]},
+      {day:'День 3 — Всё тело B', ex:[
+        ['Выпады','3×12'],['Отжимания с ногами на возвышении','3×макс'],
+        ['Ягодичный мостик','3×15'],['Боковая планка','3×30с']]},
+    ],
+    loss: [
+      {day:'День 1 — Круговая A', ex:[
+        ['Приседания','4×15'],['Отжимания','4×макс'],
+        ['Выпады с прыжком','3×12'],['Планка','3×45с']]},
+      {day:'День 2 — Кардио на весь тело', ex:[
+        ['Бег/скакалка','20 мин'],['Берпи','4×10'],['Скручивания','3×20']]},
+      {day:'День 3 — Круговая B', ex:[
+        ['Приседания с прыжком','4×12'],['Отжимания узким хватом','3×макс'],
+        ['Альпинист','3×30с'],['Ягодичный мостик','3×15']]},
+      {day:'День 4 — Интервалы', ex:[
+        ['Спринт на месте 30с/отдых 30с','8 повт'],['Скакалка','3×1 мин'],
+        ['Планка','3×50с']]},
+    ],
+  },
+  turnik: {
+    mass: [
+      {day:'День 1 — Спина / Бицепс', ex:[
+        ['Подтягивания широким хватом','5×макс'],['Подтягивания узким обратным хватом','4×макс'],
+        ['Негативные подтягивания (медленно вниз)','3×6'],['Вис на турнике с удержанием','3×30с']]},
+      {day:'День 2 — Грудь / Трицепс (брусья)', ex:[
+        ['Отжимания на брусьях','5×макс'],['Отжимания на брусьях узким хватом','3×макс'],
+        ['Отжимания от пола','3×макс'],['Обратные отжимания от скамьи','3×12']]},
+      {day:'День 3 — Пресс / кор на турнике', ex:[
+        ['Подъём ног в висе','4×12'],['Уголок на турнике (статика)','3×15с'],
+        ['Подтягивания к разным хватам','3×макс'],['Скручивания в висе','3×15']]},
+      {day:'День 4 — Комбинированный', ex:[
+        ['Подтягивания','4×макс'],['Отжимания на брусьях','4×макс'],
+        ['Австралийские подтягивания (на низкой перекладине)','3×12'],['Вис на одной руке (по очереди)','3×10с']]},
+    ],
+    cut: [
+      {day:'День 1 — Круговая на турнике A', ex:[
+        ['Подтягивания','4×макс'],['Отжимания на брусьях','4×макс'],
+        ['Подъём ног в висе','3×15'],['Берпи','3×12']]},
+      {day:'День 2 — Кардио + пресс', ex:[
+        ['Бег','20 мин'],['Подъём ног в висе','3×15'],['Планка','3×45с']]},
+      {day:'День 3 — Круговая на турнике B', ex:[
+        ['Австралийские подтягивания','4×12'],['Отжимания от пола','4×макс'],
+        ['Уголок на турнике (статика)','3×15с'],['Скакалка','3×1 мин']]},
+    ],
+    loss: [
+      {day:'День 1 — Круговая интенсив', ex:[
+        ['Подтягивания','4×макс'],['Берпи','4×12'],
+        ['Отжимания на брусьях','4×макс'],['Скакалка','3×1 мин']]},
+      {day:'День 2 — Кардио', ex:[
+        ['Бег/скакалка','20-25 мин'],['Подъём ног в висе','3×15']]},
+      {day:'День 3 — Круговая интенсив 2', ex:[
+        ['Австралийские подтягивания','4×15'],['Отжимания от пола','4×макс'],
+        ['Спринт на месте','8×30с'],['Планка','3×45с']]},
+    ],
+    general: [
+      {day:'День 1 — База', ex:[
+        ['Подтягивания','3×макс'],['Отжимания на брусьях','3×макс'],
+        ['Подъём ног в висе','3×12'],['Вис на турнике','3×20с']]},
+      {day:'День 2 — Кардио + кор', ex:[
+        ['Бег/быстрая ходьба','20 мин'],['Скручивания','3×15'],['Планка','3×40с']]},
+      {day:'День 3 — Техника', ex:[
+        ['Негативные подтягивания','3×6'],['Отжимания от пола','3×макс'],
+        ['Австралийские подтягивания','3×12']]},
+    ],
+  }
+};
+
+/* ============ EXERCISE TECHNIQUE INFO ============ */
+const ADVANCED_VARIANTS = {
+  'Приседания со штангой': 'Приседания со штангой (пауза 2с внизу)',
+  'Жим штанги лёжа': 'Жим штанги лёжа (пауза 1с на груди)',
+  'Становая тяга': 'Становая тяга с дефицитом (стоя на блине)',
+  'Тяга штанги в наклоне': 'Тяга штанги в наклоне (пауза у живота)',
+  'Подтягивания': 'Подтягивания с отягощением',
+  'Жим ногами': 'Жим ногами в медленном темпе (3с вниз)',
+  'Отжимания': 'Отжимания с хлопком',
+  'Приседания': 'Приседания с прыжком',
+  'Выпады с гантелями': 'Болгарские выпады с гантелями',
+  'Планка': 'Планка с подъёмом руки/ноги',
+  'Берпи': 'Берпи с прыжком на возвышение',
+  'Отжимания на брусьях': 'Отжимания на брусьях с отягощением',
+  'Подтягивания широким хватом': 'Подтягивания широким хватом с отягощением',
+};
+function applyLevel(name, level){
+  if(level === 'advanced' && ADVANCED_VARIANTS[name]) return ADVANCED_VARIANTS[name];
+  return name;
+}
+function toughenScheme(scheme, level){
+  if(level !== 'advanced') return scheme;
+  // bump obvious rep ranges slightly and flag shorter rest
+  return scheme + ' · отдых -15с';
+}
+
+const TECHNIQUE = {
+  'Приседания со штангой': ['Штанга на верхней части трапеций, не на шее', 'Колени идут по направлению носков', 'Опускайся до параллели бёдер с полом или ниже', 'Спина прямая, взгляд перед собой', 'Вставай через пятки'],
+  'Жим штанги лёжа': ['Лопатки сведены и прижаты к скамье', 'Гриф опускается к нижней части груди', 'Локти под углом ~45° к корпусу, не разводи в стороны', 'Не отрывай таз от скамьи'],
+  'Становая тяга': ['Гриф вплотную к голеням', 'Спина прямая на всей амплитуде, без округления поясницы', 'Тяга начинается ногами, не спиной', 'Гриф скользит вдоль ног'],
+  'Тяга штанги в наклоне': ['Корпус наклонён ~45°, спина прямая', 'Тяга к низу живота, локти вдоль корпуса', 'Без рывка, работай спиной, не руками'],
+  'Подтягивания': ['Полная амплитуда — от прямых рук до подбородка над перекладиной', 'Лопатки вниз и назад в начале движения', 'Без раскачки корпуса'],
+  'Румынская тяга': ['Ноги почти прямые, лёгкий сгиб в коленях', 'Таз уходит назад, спина прямая', 'Гриф скользит вдоль ног, не уводи вперёд'],
+  'Приседания': ['Ноги на ширине плеч, носки слегка врозь', 'Колени по направлению носков, не заваливай внутрь', 'Опускайся до параллели, спина прямая'],
+  'Отжимания': ['Тело — прямая линия от головы до пяток', 'Локти под углом ~45°, не расставляй в стороны', 'Опускайся до касания грудью пола или близко к этому'],
+  'Планка': ['Тело прямая линия, таз не провисает и не поднят', 'Локти под плечами', 'Живот и ягодицы напряжены, дыши ровно'],
+  'Берпи': ['Присед → упор лёжа → отжимание → прыжок ногами к рукам → прыжок вверх', 'Держи темп, но не жертвуй техникой ради скорости'],
+  'Выпады с гантелями': ['Шаг вперёд, колено задней ноги почти касается пола', 'Переднее колено не уходит сильно за носок', 'Корпус вертикально'],
+  'Жим ногами': ['Стопы на ширине плеч на платформе', 'Опускай платформу, пока угол в колене ~90°', 'Не отрывай поясницу от спинки'],
+  'Отжимания на брусьях': ['Корпус слегка наклонён вперёд для акцента на грудь, вертикально — на трицепс', 'Опускайся, пока плечи не окажутся чуть ниже локтей', 'Не роняй резко вниз, контролируй амплитуду'],
+  'Подъём ног в висе': ['Вис на прямых руках, хват чуть шире плеч', 'Поднимай прямые (или согнутые для новичка) ноги к груди без раскачки', 'Опускай ноги медленно, не бросай'],
+  'Уголок на турнике (статика)': ['Вис на турнике, ноги подняты параллельно полу', 'Спина прямая, не раскачивайся', 'Начни с 5-10 секунд, наращивай постепенно'],
+  'Австралийские подтягивания': ['Перекладина на уровне пояса, тело прямой линией под ней', 'Тяни грудь к перекладине, лопатки сведены', 'Чем ниже перекладина — тем сложнее вариант'],
+};
+const GENERIC_CUES = ['Разминка перед рабочими подходами', 'Контролируемый темп, без рывков', 'Полная амплитуда движения без боли в суставах', 'Дыхание: выдох на усилии'];
+
+let techCounter = 0;
+function techToggleHTML(rawName, extraDesc){
+  const id = 'tech'+(techCounter++);
+  const baseName = rawName.replace(/\s*\([^)]*\)\s*$/,''); // strip "(...)" advanced suffix for lookup
+  const cues = TECHNIQUE[baseName] || GENERIC_CUES;
+  const ytQuery = encodeURIComponent(rawName + ' техника выполнения');
+  const cuesHtml = cues.map(c=>`<li>${c}</li>`).join('');
+  const descHtml = extraDesc ? `<p style="margin:0 0 8px; color:var(--muted); font-size:12.5px;">${extraDesc}</p>` : '';
+  return {
+    id,
+    detail: `<div id="${id}" style="display:none; padding:10px 0 4px 0; border-bottom:1px solid var(--line);">
+      ${descHtml}
+      <ul style="margin:0 0 8px; padding-left:18px;">${cuesHtml}</ul>
+      <a href="https://www.youtube.com/results?search_query=${ytQuery}" target="_blank" rel="noopener" style="color:var(--brass); font-size:12.5px; font-family:'JetBrains Mono';">смотреть видео с техникой →</a>
+    </div>`
+  };
+}
+function toggleTech(id){
+  const el = document.getElementById(id);
+  if(el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+
+function buildPlan(){
+  const {location, goal, level, days} = state;
+  let template = LIBRARY[location][goal];
+  const dNum = parseInt(days);
+  let plan = template.slice(0, Math.min(dNum, template.length));
+  while(plan.length < dNum){
+    plan.push(template[plan.length % template.length]);
+  }
+  const levelNote = level==='beginner'
+    ? 'Новичку: первые 2 недели держи 1-2 повтора в запасе на каждом подходе, чтобы отработать технику, вес наращивай постепенно.'
+    : level==='inter'
+    ? 'Средний уровень: 1 повтор в запасе на рабочих подходах, каждые 4-6 недель меняй упражнения местами, чтобы не застаиваться.'
+    : 'Продвинутый: работай до 0-1 повтора в запасе, добавлены усложнённые варианты движений и укороченный отдых — следи за техникой, особенно в конце подхода.';
+
+  let html = `<div class="card"><div class="plan-header"><span class="display" style="font-size:16px;">Твой план</span><span class="num">${dNum} ДН/НЕД</span></div>`;
+  plan.forEach(d=>{
+    html += `<div class="day-block"><div class="day-title">${d.day}</div>`;
+    d.ex.forEach(([rawName,rawScheme])=>{
+      const name = applyLevel(rawName, level);
+      const scheme = toughenScheme(rawScheme, level);
+      const t = techToggleHTML(name);
+      html += `<div class="ex-row" style="cursor:pointer;" onclick="toggleTech('${t.id}')"><span class="ex-name" style="text-decoration:underline dotted; text-underline-offset:3px;">${name}</span><span class="ex-sets mono">${scheme}</span></div>${t.detail}`;
+    });
+    html += `</div>`;
+  });
+  html += `<div class="note">${levelNote} Разминка 5-10 минут перед каждой тренировкой, растяжка после. Нажми на название упражнения — раскроются подсказки по технике и ссылка на видео.</div></div>`;
+  document.getElementById('planOutput').innerHTML = html;
+}
+document.getElementById('buildPlanBtn').onclick = buildPlan;
+buildPlan(); // show a default plan on load
+
+/* ============ NUTRITION ============ */
+const nutriState = Object.assign({ sex:'m', activity:'1.55', goal:'mass' }, persistGet('formaNutriChips', {}));
+function saveNutriChips(){ persistSet('formaNutriChips', {sex:nutriState.sex, activity:nutriState.activity, goal:nutriState.goal}); }
+function wireNutriChips(containerId, obj, key){
+  document.getElementById(containerId).querySelectorAll('.chip').forEach(chip=>{
+    chip.onclick = () => {
+      document.getElementById(containerId).querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));
+      chip.classList.add('on');
+      obj[key] = chip.dataset.val;
+      saveNutriChips();
+    };
+  });
+}
+wireNutriChips('chip-sex', nutriState, 'sex');
+wireNutriChips('chip-activity', nutriState, 'activity');
+wireNutriChips('chip-ngoal', nutriState, 'goal');
+applyChipUIFromState('chip-sex','sex', nutriState);
+applyChipUIFromState('chip-activity','activity', nutriState);
+applyChipUIFromState('chip-ngoal','goal', nutriState);
+
+function runNutritionCalc(){
+  const age = parseFloat(document.getElementById('nAge').value);
+  const height = parseFloat(document.getElementById('nHeight').value);
+  const weight = parseFloat(document.getElementById('nWeight').value);
+  const out = document.getElementById('nutritionOutput');
+  if(!age || !height || !weight){
+    out.innerHTML = '<div class="note warn">Заполни возраст, рост и вес числами</div>';
+    return;
+  }
+  persistSet('formaNutritionInputs', {age, height, weight});
+  let bmr = 10*weight + 6.25*height - 5*age + (nutriState.sex==='m' ? 5 : -161);
+  let tdee = bmr * parseFloat(nutriState.activity);
+  let calories = tdee;
+  let proteinPerKg = 1.8;
+  if(nutriState.goal==='mass') calories = tdee * 1.12;
+  else if(nutriState.goal==='cut'){ calories = tdee * 0.8; proteinPerKg = 2.2; }
+  const protein = weight * proteinPerKg;
+  const fat = (calories * 0.25) / 9;
+  const carbs = (calories - protein*4 - fat*9) / 4;
+  out.innerHTML = `<div class="day-block" style="margin-top:14px;">
+    <div class="ex-row"><span class="ex-name">Калории в день</span><span class="ex-sets mono">${Math.round(calories)} ккал</span></div>
+    <div class="ex-row"><span class="ex-name">Белки</span><span class="ex-sets mono">${Math.round(protein)} г</span></div>
+    <div class="ex-row"><span class="ex-name">Жиры</span><span class="ex-sets mono">${Math.round(fat)} г</span></div>
+    <div class="ex-row"><span class="ex-name">Углеводы</span><span class="ex-sets mono">${Math.round(carbs)} г</span></div>
+  </div><div class="note">Диапазон ±10% — тоже нормально, подгоняй по факту (вес, самочувствие, зеркало) раз в 1-2 недели.</div>`;
+}
+document.getElementById('calcNutritionBtn').onclick = runNutritionCalc;
+
+// restore previously entered numbers and auto-show last result
+const savedNutritionInputs = persistGet('formaNutritionInputs', null);
+if(savedNutritionInputs){
+  document.getElementById('nAge').value = savedNutritionInputs.age;
+  document.getElementById('nHeight').value = savedNutritionInputs.height;
+  document.getElementById('nWeight').value = savedNutritionInputs.weight;
+  runNutritionCalc();
+}
+
+/* ============ SKINCARE ============ */
+const careState = Object.assign({ skin: 'normal', scalp: 'normal', hair: 'straight' }, persistGet('formaCareState', {}));
+function wireCareChips(containerId, key){
+  document.getElementById(containerId).querySelectorAll('.chip').forEach(chip=>{
+    chip.onclick = () => {
+      document.getElementById(containerId).querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));
+      chip.classList.add('on');
+      careState[key] = chip.dataset.val;
+      persistSet('formaCareState', careState);
+      if(key==='skin') renderSkinRoutine(); else renderHairRoutine();
+    };
+  });
+}
+wireCareChips('chip-skintype','skin');
+wireCareChips('chip-scalp','scalp');
+wireCareChips('chip-hairtype','hair');
+applyChipUIFromState('chip-skintype','skin', careState);
+applyChipUIFromState('chip-scalp','scalp', careState);
+applyChipUIFromState('chip-hairtype','hair', careState);
+
+const SKIN_ROUTINES = {
+  normal: {
+    am: ['Мягкий гель/пенка для умывания', 'Увлажняющий крем', 'SPF 30+ обязательно, даже зимой и в помещении у окна'],
+    pm: ['Умывание', 'Увлажняющий крем или лёгкая сыворотка (например с ниацинамидом)'],
+    note: 'Раз в неделю можно мягкий эксфолиант (AHA/BHA в низкой концентрации), если кожа хорошо переносит.'
+  },
+  oily: {
+    am: ['Гель для умывания с салициловой кислотой', 'Лёгкий увлажняющий крем без масел (oil-free)', 'SPF с матирующим эффектом'],
+    pm: ['Умывание', 'Сыворотка с ниацинамидом (снижает жирность и воспаления)', 'Лёгкий увлажняющий крем — жирная кожа тоже нуждается в увлажнении'],
+    note: 'Не пересушивай агрессивными средствами — кожа в ответ начнёт вырабатывать ещё больше себума.'
+  },
+  dry: {
+    am: ['Кремовый/мягкий очищающий гель без сульфатов', 'Сыворотка с гиалуроновой кислотой на влажную кожу', 'Плотный увлажняющий крем', 'SPF'],
+    pm: ['Умывание', 'Питательный крем или косметическое масло', '1-2 раза в неделю — увлажняющая маска'],
+    note: 'Избегай спиртосодержащих тоников и частого использования скрабов.'
+  },
+  combo: {
+    am: ['Мягкое умывание', 'Лёгкий крем в зоне Т (лоб/нос/подбородок), более плотный на щёках', 'SPF'],
+    pm: ['Умывание', 'Точечно — средство от жирности в Т-зоне, увлажнение на щёки'],
+    note: 'Не обязательно использовать один продукт на всё лицо — можно комбинировать по зонам.'
+  },
+};
+function renderSkinRoutine(){
+  const r = SKIN_ROUTINES[careState.skin];
+  const html = `<div class="day-block" style="margin-top:14px;">
+    <div class="day-title">Утро</div>
+    <ul style="padding-left:18px; margin:0 0 14px;">${r.am.map(x=>`<li style="font-size:14px; line-height:1.6;">${x}</li>`).join('')}</ul>
+    <div class="day-title">Вечер</div>
+    <ul style="padding-left:18px; margin:0;">${r.pm.map(x=>`<li style="font-size:14px; line-height:1.6;">${x}</li>`).join('')}</ul>
+  </div>
+  <div class="note">${r.note} Новые активные средства (ретинол, кислоты) вводи по одному, с перерывом в пару недель — так проще понять, что вызвало реакцию, если она будет.</div>`;
+  document.getElementById('skinOutput').innerHTML = html;
+}
+renderSkinRoutine();
+
+const SCALP_TIPS = {
+  normal: 'Мытьё каждые 2-3 дня обычным шампунем подойдёт.',
+  oily: 'Мытьё через день, шампунь с балансирующим эффектом (без силиконов и тяжёлых масел), не используй горячую воду — она усиливает выработку себума.',
+  dry: 'Мытьё раз в 3-4 дня, увлажняющий/питательный шампунь, кондиционер каждый раз, раз в неделю — маска для кожи головы.',
+};
+const HAIR_STYLE_TIPS = {
+  straight: 'Хорошо держат чёткие геометричные стрижки. Лёгкая текстурирующая паста добавит объём без утяжеления.',
+  wavy: 'Крем или мусс для волн подчеркнёт текстуру, не расчёсывай сухие волосы щёткой — лучше пальцами или расчёской с редкими зубьями.',
+  curly: 'Метод сушки без полотенца (микрофибра/футболка), несмываемый кондиционер и минимум расчёсывания в сухом виде — так кудри меньше пушатся.',
+};
+function renderHairRoutine(){
+  const html = `<div class="day-block" style="margin-top:14px;">
+    <div class="ex-row"><span class="ex-name">Кожа головы</span></div>
+    <p style="font-size:14px; line-height:1.6; margin:4px 0 14px;">${SCALP_TIPS[careState.scalp]}</p>
+    <div class="ex-row"><span class="ex-name">Укладка/уход по типу волос</span></div>
+    <p style="font-size:14px; line-height:1.6; margin:4px 0 0;">${HAIR_STYLE_TIPS[careState.hair]}</p>
+  </div>
+  <div class="note">Регулярное подравнивание кончиков (раз в 6-8 недель) убирает посечённость и держит форму стрижки дольше.</div>`;
+  document.getElementById('hairOutput').innerHTML = html;
+}
+renderHairRoutine();
+
+/* ============ FACE EXERCISES ============ */
+const faceState = Object.assign({ goal: 'cheeks' }, persistGet('formaFaceState', {}));
+document.getElementById('chip-facegoal').querySelectorAll('.chip').forEach(chip=>{
+  chip.onclick = () => {
+    document.getElementById('chip-facegoal').querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));
+    chip.classList.add('on');
+    faceState.goal = chip.dataset.val;
+    persistSet('formaFaceState', faceState);
+    renderFacePlan();
+  };
+});
+applyChipUIFromState('chip-facegoal','goal', faceState);
+
+const FACE_LIBRARY = {
+  cheeks: {
+    title: 'Тонус щёк и скул',
+    ex: [
+      ['Fish face (рыбка)','Втяни щёки и губы, удерживай 15-20 сек','3×15-20с'],
+      ['Подъём щёк','Улыбнись без показа зубов, прижми пальцами скулы и "подмигивай" щеками вверх','3×15 повт'],
+      ['Cheek lifter','Открой рот в форме "О", губами накрой зубы, улыбайся, поднимая щёки','3×10 повт'],
+      ['Позиция языка (mewing)','Язык полностью прижат к нёбу в состоянии покоя, зубы сомкнуты без напряжения — держать в течение дня как привычку','постоянно'],
+    ]
+  },
+  puffy: {
+    title: 'Дренаж и снятие отёчности',
+    ex: [
+      ['Лимфодренажный массаж','Пальцами от центра лица к ушам и вниз по шее, лёгкое давление, 1-2 минуты','1-2 мин'],
+      ['Гуаша / роллер','Провести скребком/роллером от подбородка к уху и от носа к виску, без сильного нажима','2-3 мин'],
+      ['Контраст температур','Умывание — сначала тёплой, затем холодной водой, или лёд в полотенце на 30 сек','30-60с'],
+      ['Наклоны и повороты шеи','Медленные наклоны головы в стороны и вперёд-назад — разгоняет застой в области шеи','2×10 повт'],
+    ]
+  },
+  jaw: {
+    title: 'Чёткость челюсти',
+    ex: [
+      ['Jaw jut (выдвижение челюсти)','Выдвини нижнюю челюсть вперёд и слегка вверх, удерживай','3×10-15с'],
+      ['Сопротивление подбородком','Кулаком слегка давить на подбородок снизу, пытаясь открыть рот преодолевая сопротивление','3×10 повт'],
+      ['Жевательная резинка без сахара','5-10 минут жевания — щадящая нагрузка на жевательные мышцы','5-10 мин'],
+      ['Растяжка шеи и платизмы','Запрокинуть голову назад, нижней губой "накрыть" верхнюю, удерживать','3×10-15с'],
+    ]
+  }
+};
+
+const FACE_TECHNIQUE = {
+  'Fish face (рыбка)': ['Втяни щёки и губы внутрь, будто изображаешь рыбу', 'Держи улыбку в этом положении', 'Не напрягай шею'],
+  'Позиция языка (mewing)': ['Кончик и вся спинка языка прижаты к нёбу', 'Зубы едва соприкасаются, губы сомкнуты без напряжения', 'Дыхание через нос', 'Формируй привычку держать это положение в течение дня'],
+  'Лимфодренажный массаж': ['Чистые руки, можно с кремом/маслом для скольжения', 'Направление — от центра лица к ушам, затем вниз по шее к ключицам', 'Давление лёгкое, без растягивания кожи'],
+  'Jaw jut (выдвижение челюсти)': ['Выдвигай нижнюю челюсть вперёд и слегка вверх', 'Почувствуй напряжение под подбородком', 'Без резких движений'],
+};
+function faceTechToggleHTML(name){
+  const id = 'facetech'+(techCounter++);
+  const cues = FACE_TECHNIQUE[name] || GENERIC_CUES;
+  const ytQuery = encodeURIComponent(name + ' упражнение для лица техника');
+  const cuesHtml = cues.map(c=>`<li>${c}</li>`).join('');
+  return {
+    id,
+    detail: `<div id="${id}" style="display:none; padding:8px 0 4px 0;">
+      <ul style="margin:0 0 8px; padding-left:18px;">${cuesHtml}</ul>
+      <a href="https://www.youtube.com/results?search_query=${ytQuery}" target="_blank" rel="noopener" style="color:var(--brass); font-size:12.5px; font-family:'JetBrains Mono';">смотреть видео с техникой →</a>
+    </div>`
+  };
+}
+
+function renderFacePlan(){
+  const data = FACE_LIBRARY[faceState.goal];
+  let html = `<div class="card"><div class="plan-header"><span class="display" style="font-size:16px;">${data.title}</span><span class="num">5-7 МИН/ДЕНЬ</span></div><div class="day-block">`;
+  data.ex.forEach(([name, desc, scheme])=>{
+    const t = faceTechToggleHTML(name);
+    html += `<div class="ex-row" style="align-items:flex-start; cursor:pointer;" onclick="toggleTech('${t.id}')"><span class="ex-name"><b style="text-decoration:underline dotted; text-underline-offset:3px;">${name}</b><br><span style="color:var(--muted); font-size:12.5px;">${desc}</span></span><span class="ex-sets mono">${scheme}</span></div>${t.detail}`;
+  });
+  html += `</div><div class="note">Выполняй перед зеркалом, без рывков и боли. Нажми на название — раскроются подробные подсказки и ссылка на видео. Эффект от мышечных упражнений накопительный — заметен через 4-6 недель регулярной практики, отёчность же спадает почти сразу после дренажа.</div></div>`;
+  document.getElementById('faceOutput').innerHTML = html;
+}
+renderFacePlan();
+
+/* ============ SLEEP: calculator ============ */
+function parseTime(str){
+  const m = str.trim().match(/^(\d{1,2}):(\d{2})$/);
+  if(!m) return null;
+  const h = parseInt(m[1]), min = parseInt(m[2]);
+  if(h>23||min>59) return null;
+  return h*60+min;
+}
+function fmtTime(mins){
+  mins = ((mins % 1440)+1440)%1440;
+  const h = Math.floor(mins/60), m = mins%60;
+  return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0');
+}
+document.getElementById('calcSleepBtn').onclick = () => {
+  const wake = parseTime(document.getElementById('wakeTimeInput').value);
+  const out = document.getElementById('sleepCalcOutput');
+  if(wake===null){ out.innerHTML = '<div class="note warn">Формат — ЧЧ:ММ, например 07:00</div>'; return; }
+  const cycles = [6,5,4,3];
+  let html = '<div class="day-block" style="margin-top:14px;">';
+  cycles.forEach(c=>{
+    const bedtime = wake - c*90 - 15;
+    html += `<div class="ex-row"><span class="ex-name">${c} циклов (${(c*1.5).toFixed(1)} ч сна)</span><span class="ex-sets mono">${fmtTime(bedtime)}</span></div>`;
+  });
+  html += '</div>';
+  out.innerHTML = html;
+};
+
+/* ============ SLEEP: checklist ============ */
+const CHECKLIST_ITEMS = [
+  'Не смотреть в экран за 30 минут до сна',
+  'Приглушить свет за час до сна',
+  'Не есть тяжёлую еду за 2-3 часа до сна',
+  'Без кофеина после 14:00',
+  'Прохладная, тёмная комната',
+  'Ложиться и вставать в одно и то же время',
+];
+function renderChecklist(){
+  const saved = JSON.parse(localStorage.getItem('formaSleepChecklist') || '{}');
+  const today = new Date().toDateString();
+  const todayState = saved[today] || {};
+  let html = '';
+  CHECKLIST_ITEMS.forEach((item,i)=>{
+    const checked = todayState[i] ? 'checked' : '';
+    html += `<label style="display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid var(--line); font-size:14px; cursor:pointer;">
+      <input type="checkbox" data-idx="${i}" ${checked} style="width:16px;height:16px;accent-color:var(--brass);">${item}</label>`;
+  });
+  document.getElementById('sleepChecklist').innerHTML = html;
+  document.querySelectorAll('#sleepChecklist input[type=checkbox]').forEach(cb=>{
+    cb.onchange = () => {
+      const saved = JSON.parse(localStorage.getItem('formaSleepChecklist') || '{}');
+      const today = new Date().toDateString();
+      saved[today] = saved[today] || {};
+      saved[today][cb.dataset.idx] = cb.checked;
+      localStorage.setItem('formaSleepChecklist', JSON.stringify(saved));
+    };
+  });
+}
+renderChecklist();
+
+/* ============ SLEEP: log + streak ============ */
+function getSleepLog(){ return JSON.parse(localStorage.getItem('formaSleepLog') || '[]'); }
+function renderSleepLog(){
+  const log = getSleepLog();
+  const out = document.getElementById('sleepLogOutput');
+  if(!log.length){ out.innerHTML = ''; document.getElementById('streakLabel').textContent = '0 дней подряд'; return; }
+  const recent = log.slice(-7).reverse();
+  let html = '<div class="day-block" style="margin-top:14px;">';
+  recent.forEach(entry=>{
+    const bedM = parseTime(entry.bedtime), wakeM = parseTime(entry.waketime);
+    let duration = '—';
+    if(bedM!==null && wakeM!==null){
+      let diff = wakeM - bedM; if(diff<0) diff += 1440;
+      duration = (diff/60).toFixed(1)+' ч';
+    }
+    html += `<div class="ex-row"><span class="ex-name">${entry.date}</span><span class="ex-sets mono">${entry.bedtime}→${entry.waketime} · ${duration}</span></div>`;
+  });
+  html += '</div>';
+  out.innerHTML = html;
+
+  // streak = consecutive days (from most recent) with duration >= 7h
+  let streak = 0;
+  for(let i=log.length-1;i>=0;i--){
+    const bedM = parseTime(log[i].bedtime), wakeM = parseTime(log[i].waketime);
+    if(bedM===null||wakeM===null) break;
+    let diff = wakeM - bedM; if(diff<0) diff += 1440;
+    if(diff/60 >= 7) streak++; else break;
+  }
+  document.getElementById('streakLabel').textContent = `${streak} дней подряд ≥7ч`;
+}
+document.getElementById('logSleepBtn').onclick = () => {
+  const bedtime = document.getElementById('logBedtime').value.trim();
+  const waketime = document.getElementById('logWaketime').value.trim();
+  if(parseTime(bedtime)===null || parseTime(waketime)===null){
+    alert('Формат времени — ЧЧ:ММ, например 23:30');
+    return;
+  }
+  const log = getSleepLog();
+  const dateLabel = new Date().toLocaleDateString('ru-RU', {day:'2-digit', month:'2-digit'});
+  log.push({date: dateLabel, bedtime, waketime});
+  localStorage.setItem('formaSleepLog', JSON.stringify(log));
+  document.getElementById('logBedtime').value='';
+  document.getElementById('logWaketime').value='';
+  renderSleepLog();
+};
+renderSleepLog();
+
+/* ============ SETTINGS ============ */
+function loadSettings(){
+  const saved = JSON.parse(localStorage.getItem('formaAiSettings') || '{}');
+  const provider = saved.provider || 'anthropic';
+  document.querySelectorAll('.provider-btn').forEach(b=>{
+    b.classList.toggle('on', b.dataset.val === provider);
+  });
+  document.getElementById('apiKeyInput').value = saved.apiKey || '';
+  document.getElementById('modelInput').value = saved.model || PROVIDER_DEFAULTS[provider].model;
+  document.getElementById('imageModelInput').value = saved.imageModel || PROVIDER_DEFAULTS[provider].imageModel || '';
+  document.getElementById('imageModelField').style.display = provider==='anthropic' ? 'none' : 'block';
+  document.getElementById('corsNote').textContent = CORS_NOTES[provider];
+  updateProviderStatus(saved.apiKey);
+  return saved;
+}
+function updateProviderStatus(key){
+  const el = document.getElementById('providerStatus');
+  if(key){
+    el.innerHTML = '<span class="status-dot ok"></span>ключ сохранён';
+  } else {
+    el.innerHTML = '<span class="status-dot off"></span>ключ не задан';
+  }
+}
+document.querySelectorAll('.provider-btn').forEach(btn=>{
+  btn.onclick = () => {
+    document.querySelectorAll('.provider-btn').forEach(b=>b.classList.remove('on'));
+    btn.classList.add('on');
+    document.getElementById('modelInput').value = PROVIDER_DEFAULTS[btn.dataset.val].model;
+    document.getElementById('imageModelInput').value = PROVIDER_DEFAULTS[btn.dataset.val].imageModel || '';
+    document.getElementById('imageModelField').style.display = btn.dataset.val==='anthropic' ? 'none' : 'block';
+    document.getElementById('corsNote').textContent = CORS_NOTES[btn.dataset.val];
+  };
+});
+document.getElementById('saveKeyBtn').onclick = () => {
+  const provider = document.querySelector('.provider-btn.on').dataset.val;
+  const apiKey = document.getElementById('apiKeyInput').value.trim();
+  const model = document.getElementById('modelInput').value.trim() || PROVIDER_DEFAULTS[provider].model;
+  const imageModel = document.getElementById('imageModelInput').value.trim() || PROVIDER_DEFAULTS[provider].imageModel || '';
+  localStorage.setItem('formaAiSettings', JSON.stringify({provider, apiKey, model, imageModel}));
+  updateProviderStatus(apiKey);
+  checkAssessReady();
+  updateVisualizeAvailability();
+  checkChatReady();
+  alert('Сохранено. Ключ лежит только в этом браузере.');
+};
+document.getElementById('clearKeyBtn').onclick = () => {
+  localStorage.removeItem('formaAiSettings');
+  document.getElementById('apiKeyInput').value = '';
+  updateProviderStatus(null);
+  checkAssessReady();
+  checkChatReady();
+};
+document.getElementById('resetAllBtn').onclick = () => {
+  if(!confirm('Точно удалить все сохранённые данные приложения (тренировки, питание, сон, уход, чат, ключ)? Это необратимо.')) return;
+  const keys = ['formaAiSettings','formaWorkoutState','formaNutriChips','formaNutritionInputs',
+    'formaCareState','formaFaceState','formaSleepChecklist','formaSleepLog','formaChatHistory'];
+  keys.forEach(k => localStorage.removeItem(k));
+  location.reload();
+};
+
+/* ============ ASSESS VIEW ============ */
+document.getElementById('uploadZone').onclick = () => document.getElementById('fileInput').click();
+document.getElementById('fileInput').onchange = (e) => {
+  const file = e.target.files[0];
+  if(!file) return;
+  state.photoMime = file.type;
+  const reader = new FileReader();
+  reader.onload = () => {
+    state.photoBase64 = reader.result.split(',')[1];
+    document.getElementById('previewWrap').innerHTML = `<img class="preview-img" src="${reader.result}">`;
+    checkAssessReady();
+  };
+  reader.readAsDataURL(file);
+};
+
+function checkAssessReady(){
+  const saved = JSON.parse(localStorage.getItem('formaAiSettings') || '{}');
+  const btn = document.getElementById('assessBtn');
+  const note = document.getElementById('noKeyNote');
+  if(!saved.apiKey){
+    note.style.display = 'block';
+    btn.disabled = true;
+    btn.textContent = 'Нужен API-ключ (Настройки)';
+  } else if(!state.photoBase64){
+    note.style.display = 'none';
+    btn.disabled = true;
+    btn.textContent = 'Сначала выбери фото';
+  } else {
+    note.style.display = 'none';
+    btn.disabled = false;
+    btn.textContent = 'Сделать разбор';
+  }
+}
+
+const ASSESS_PROMPT = `Ты — консультант по стилю и уходу за собой (грумингу). Посмотри на фото человека и дай конструктивный, дружелюбный разбор на русском языке. НЕ ставь числовых оценок или рейтингов (никаких "7/10", никаких баллов красоты) — вместо этого опиши сильные стороны и конкретные, выполнимые шаги для улучшения.
+
+Структура ответа (используй именно такие заголовки, каждый с новой строки, без markdown-звёздочек):
+СИЛЬНЫЕ СТОРОНЫ: 2-3 пункта, что уже хорошо работает.
+ВОЛОСЫ И ГРУМИНГ: конкретные советы по причёске/бороде/уходу, с учётом формы лица.
+КОЖА: состояние кожи и базовые шаги по уходу, если есть что улучшить.
+СТИЛЬ: советы по одежде/образу, если видно на фото.
+БЫСТРЫЕ ПОБЕДЫ: 3 конкретных действия, которые дадут заметный эффект быстрее всего.
+
+Тон — как у толкового друга, который разбирается в теме: прямо, по делу, без грубости и без пустой лести.`;
+
+async function callAnthropic(apiKey, model, base64, mime){
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true',
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify({
+      model,
+      max_tokens: 1200,
+      messages: [{
+        role: 'user',
+        content: [
+          {type:'image', source:{type:'base64', media_type: mime, data: base64}},
+          {type:'text', text: ASSESS_PROMPT}
+        ]
+      }]
+    })
+  });
+  if(!res.ok) throw new Error(`Anthropic API: ${res.status} ${await res.text()}`);
+  const data = await res.json();
+  return data.content.map(b => b.text || '').join('\n');
+}
+
+async function callGemini(apiKey, model, base64, mime){
+  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({
+      contents: [{parts: [
+        {text: ASSESS_PROMPT},
+        {inline_data: {mime_type: mime, data: base64}}
+      ]}]
+    })
+  });
+  if(!res.ok) throw new Error(`Gemini API: ${res.status} ${await res.text()}`);
+  const data = await res.json();
+  return data.candidates?.[0]?.content?.parts?.map(p=>p.text||'').join('\n') || 'Пустой ответ.';
+}
+
+async function callOpenAI(apiKey, model, base64, mime){
+  const res = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {'Authorization': `Bearer ${apiKey}`, 'Content-Type':'application/json'},
+    body: JSON.stringify({
+      model,
+      max_tokens: 1200,
+      messages: [{
+        role: 'user',
+        content: [
+          {type:'text', text: ASSESS_PROMPT},
+          {type:'image_url', image_url:{url:`data:${mime};base64,${base64}`}}
+        ]
+      }]
+    })
+  });
+  if(!res.ok) throw new Error(`OpenAI API: ${res.status} ${await res.text()}`);
+  const data = await res.json();
+  return data.choices?.[0]?.message?.content || 'Пустой ответ.';
+}
+
+function renderResult(text){
+  // turn our fixed headers into styled sections; fall back to plain paragraphs otherwise
+  const headers = ['СИЛЬНЫЕ СТОРОНЫ','ВОЛОСЫ И ГРУМИНГ','КОЖА','СТИЛЬ','БЫСТРЫЕ ПОБЕДЫ'];
+  let html = text;
+  headers.forEach(h=>{
+    html = html.replace(new RegExp(h+':?','g'), `\n<h3>${h}</h3>\n`);
+  });
+  const lines = html.split('\n').filter(l=>l.trim().length);
+  let out = '';
+  let inList = false;
+  lines.forEach(line=>{
+    const t = line.trim();
+    if(t.startsWith('<h3>')){
+      if(inList){ out += '</ul>'; inList=false; }
+      out += t;
+    } else if(t.startsWith('-') || t.startsWith('•') || /^\d+[\.\)]/.test(t)){
+      if(!inList){ out += '<ul>'; inList=true; }
+      out += `<li>${t.replace(/^[-•]\s*/,'').replace(/^\d+[\.\)]\s*/,'')}</li>`;
+    } else {
+      if(inList){ out += '</ul>'; inList=false; }
+      out += `<p>${t}</p>`;
+    }
+  });
+  if(inList) out += '</ul>';
+  document.getElementById('resultBlock').innerHTML = out;
+  document.getElementById('resultCard').style.display = 'block';
+}
+
+document.getElementById('assessBtn').onclick = async () => {
+  const saved = JSON.parse(localStorage.getItem('formaAiSettings') || '{}');
+  if(!saved.apiKey || !state.photoBase64) return;
+  const btn = document.getElementById('assessBtn');
+  const originalText = btn.textContent;
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Анализирую…';
+  try{
+    let text;
+    if(saved.provider === 'anthropic') text = await callAnthropic(saved.apiKey, saved.model, state.photoBase64, state.photoMime);
+    else if(saved.provider === 'gemini') text = await callGemini(saved.apiKey, saved.model, state.photoBase64, state.photoMime);
+    else text = await callOpenAI(saved.apiKey, saved.model, state.photoBase64, state.photoMime);
+    renderResult(text);
+  } catch(err){
+    document.getElementById('resultBlock').innerHTML = `<p style="color:#B5533C;">Не получилось получить ответ: ${err.message}. Проверь ключ, модель, и что в консоли браузера (F12) нет ошибки CORS — если есть, попробуй другого провайдера.</p>`;
+    document.getElementById('resultCard').style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = originalText;
+    checkAssessReady();
+  }
+};
+
+/* ============ VISUALIZATION (image generation, Gemini / GPT only) ============ */
+const VISUALIZE_PROMPT = `Отредактируй это фото, чтобы реалистично показать результат хорошего ухода за собой: аккуратная стрижка, подходящая форме лица, чистая ровная кожа, аккуратно оформленная борода или чистое бритьё, отдохнувший вид без отёчности, приятный мягкий свет. Это тот же человек — не меняй черты лица, форму костей, пропорции и возраст. Меняй только уход, причёску, состояние кожи и освещение. Результат должен выглядеть реалистично и достижимо, а не как фантазия.`;
+
+async function generateImageGemini(apiKey, model, base64, mime){
+  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({
+      contents: [{parts: [
+        {text: VISUALIZE_PROMPT},
+        {inline_data: {mime_type: mime, data: base64}}
+      ]}],
+      generationConfig: { responseModalities: ['TEXT','IMAGE'] }
+    })
+  });
+  if(!res.ok) throw new Error(`Gemini API: ${res.status} ${await res.text()}`);
+  const data = await res.json();
+  const parts = data.candidates?.[0]?.content?.parts || [];
+  const imgPart = parts.find(p => p.inlineData?.data || p.inline_data?.data);
+  if(!imgPart) throw new Error('Модель не вернула изображение — попробуй другую модель в Настройках.');
+  const b64 = imgPart.inlineData?.data || imgPart.inline_data?.data;
+  const outMime = imgPart.inlineData?.mimeType || imgPart.inline_data?.mime_type || 'image/png';
+  return `data:${outMime};base64,${b64}`;
+}
+
+async function generateImageOpenAI(apiKey, model, base64, mime){
+  const byteChars = atob(base64);
+  const byteNumbers = new Array(byteChars.length);
+  for(let i=0;i<byteChars.length;i++) byteNumbers[i] = byteChars.charCodeAt(i);
+  const blob = new Blob([new Uint8Array(byteNumbers)], {type: mime});
+  const form = new FormData();
+  form.append('image', blob, 'photo.png');
+  form.append('prompt', VISUALIZE_PROMPT);
+  form.append('model', model);
+  const res = await fetch('https://api.openai.com/v1/images/edits', {
+    method: 'POST',
+    headers: {'Authorization': `Bearer ${apiKey}`},
+    body: form
+  });
+  if(!res.ok) throw new Error(`OpenAI API: ${res.status} ${await res.text()}`);
+  const data = await res.json();
+  const item = data.data?.[0];
+  if(!item) throw new Error('Модель не вернула изображение.');
+  return item.b64_json ? `data:image/png;base64,${item.b64_json}` : item.url;
+}
+
+function updateVisualizeAvailability(){
+  const saved = JSON.parse(localStorage.getItem('formaAiSettings') || '{}');
+  const btn = document.getElementById('visualizeBtn');
+  const note = document.getElementById('visualizeNote');
+  if(saved.provider === 'anthropic'){
+    btn.disabled = true;
+    note.style.display = 'block';
+    note.textContent = 'Claude не генерирует изображения — переключись на Gemini или GPT в Настройках, чтобы получить визуализацию.';
+  } else {
+    btn.disabled = false;
+    note.style.display = 'none';
+  }
+}
+
+document.getElementById('visualizeBtn').onclick = async () => {
+  const saved = JSON.parse(localStorage.getItem('formaAiSettings') || '{}');
+  if(saved.provider === 'anthropic' || !state.photoBase64) return;
+  const btn = document.getElementById('visualizeBtn');
+  const original = btn.textContent;
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Генерирую…';
+  const out = document.getElementById('visualizeOutput');
+  out.innerHTML = '';
+  try{
+    const model = saved.imageModel || PROVIDER_DEFAULTS[saved.provider].imageModel;
+    let imgUrl;
+    if(saved.provider === 'gemini') imgUrl = await generateImageGemini(saved.apiKey, model, state.photoBase64, state.photoMime);
+    else imgUrl = await generateImageOpenAI(saved.apiKey, model, state.photoBase64, state.photoMime);
+    out.innerHTML = `<img class="preview-img" src="${imgUrl}" style="margin-top:14px;"><div class="note">Это иллюстрация возможного результата ухода за собой, сгенерированная ИИ — не гарантия и не медицинский результат. Реальный эффект зависит от твоих действий.</div>`;
+  } catch(err){
+    out.innerHTML = `<p style="color:#B5533C; margin-top:14px;">Не получилось сгенерировать изображение: ${err.message}</p>`;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = original;
+  }
+};
+
+/* ============ CHAT ============ */
+const LOOKSMAX_SYSTEM_PROMPT = `Ты — опытный консультант по уходу за собой и внешностью (в теме, которую иногда называют "looksmaxxing"), общаешься на русском языке. Ты глубоко разбираешься в:
+- подборе стрижки и укладки под форму лица и тип волос
+- уходе за кожей лица (типы кожи, активные компоненты, режим утро/вечер)
+- уходе за бородой и растительностью на лице
+- стиле в одежде, посадке вещей по фигуре, базовом гардеробе
+- осанке, языке тела и уверенности в поведении
+- том, как сон, питание и тренировки влияют на внешний вид (кожа, отёчность, композиция тела)
+- уходе за зубами/улыбкой и базовой гигиене как факторе привлекательности
+
+Общайся прямо, конкретно и по делу, как толковый друг, который реально разбирается в теме — без канцелярита и без пустых общих фраз. Углубляйся в детали, если пользователь просит.
+
+Ограничения, которые ты соблюдаешь всегда:
+- Не ставь медицинских диагнозов и не заменяй врача/дерматолога/стоматолога — при признаках патологии (сильные высыпания, боль, резкое выпадение волос и т.п.) советуй обратиться к специалисту.
+- Не рекомендуй рецептурные препараты, стероиды, неодобренные добавки или процедуры с недоказанной безопасностью.
+- Не поощряй экстремальные диеты, голодание, чрезмерные тренировки или другие вредные для здоровья практики ради внешности.
+- Форма костей лица (скулы, челюсть) определяется в основном генетикой — не обещай изменить её упражнениями или бытовыми методами.
+- Если видишь, что человек зацикливается на внешности в ущерб самооценке или психическому состоянию, мягко об этом скажи и предложи более здоровый взгляд, не отказывая при этом в практических советах.`;
+
+let chatHistory = persistGet('formaChatHistory', []);
+
+function renderChatMessages(){
+  const wrap = document.getElementById('chatMessages');
+  wrap.innerHTML = chatHistory.map(m => `
+    <div class="chat-msg ${m.role}">
+      <div class="who">${m.role==='user' ? 'Ты' : 'ИИ'}</div>
+      <div class="chat-bubble">${m.content.replace(/</g,'&lt;').replace(/\n/g,'<br>')}</div>
+    </div>`).join('');
+  wrap.scrollTop = wrap.scrollHeight;
+}
+renderChatMessages(); // restore chat on load
+
+async function chatCallAnthropic(apiKey, model, history){
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true',
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify({
+      model,
+      max_tokens: 1024,
+      system: LOOKSMAX_SYSTEM_PROMPT,
+      messages: history.map(m => ({role: m.role, content: m.content}))
+    })
+  });
+  if(!res.ok) throw new Error(`Anthropic API: ${res.status} ${await res.text()}`);
+  const data = await res.json();
+  return data.content.map(b => b.text || '').join('\n');
+}
+
+async function chatCallGemini(apiKey, model, history){
+  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({
+      systemInstruction: { parts: [{text: LOOKSMAX_SYSTEM_PROMPT}] },
+      contents: history.map(m => ({role: m.role==='assistant' ? 'model' : 'user', parts:[{text: m.content}]}))
+    })
+  });
+  if(!res.ok) throw new Error(`Gemini API: ${res.status} ${await res.text()}`);
+  const data = await res.json();
+  return data.candidates?.[0]?.content?.parts?.map(p=>p.text||'').join('\n') || 'Пустой ответ.';
+}
+
+async function chatCallOpenAI(apiKey, model, history){
+  const res = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {'Authorization': `Bearer ${apiKey}`, 'Content-Type':'application/json'},
+    body: JSON.stringify({
+      model,
+      max_tokens: 1024,
+      messages: [{role:'system', content: LOOKSMAX_SYSTEM_PROMPT}, ...history.map(m=>({role:m.role, content:m.content}))]
+    })
+  });
+  if(!res.ok) throw new Error(`OpenAI API: ${res.status} ${await res.text()}`);
+  const data = await res.json();
+  return data.choices?.[0]?.message?.content || 'Пустой ответ.';
+}
+
+function checkChatReady(){
+  const saved = JSON.parse(localStorage.getItem('formaAiSettings') || '{}');
+  const note = document.getElementById('chatNoKeyNote');
+  const canSend = !!saved.apiKey;
+  note.style.display = canSend ? 'none' : 'block';
+  document.getElementById('chatInput').disabled = !canSend;
+  document.getElementById('chatSendBtn').disabled = !canSend;
+}
+
+async function sendChatMessage(){
+  const saved = JSON.parse(localStorage.getItem('formaAiSettings') || '{}');
+  const input = document.getElementById('chatInput');
+  const text = input.value.trim();
+  if(!text || !saved.apiKey) return;
+  chatHistory.push({role:'user', content:text});
+  persistSet('formaChatHistory', chatHistory);
+  renderChatMessages();
+  input.value = '';
+  const sendBtn = document.getElementById('chatSendBtn');
+  sendBtn.disabled = true;
+  sendBtn.innerHTML = '<span class="spinner"></span>';
+  try{
+    let reply;
+    if(saved.provider === 'anthropic') reply = await chatCallAnthropic(saved.apiKey, saved.model, chatHistory);
+    else if(saved.provider === 'gemini') reply = await chatCallGemini(saved.apiKey, saved.model, chatHistory);
+    else reply = await chatCallOpenAI(saved.apiKey, saved.model, chatHistory);
+    chatHistory.push({role:'assistant', content:reply});
+  } catch(err){
+    chatHistory.push({role:'assistant', content:`Ошибка запроса: ${err.message}`});
+  } finally {
+    persistSet('formaChatHistory', chatHistory);
+    renderChatMessages();
+    sendBtn.disabled = false;
+    sendBtn.textContent = '→';
+    checkChatReady();
+  }
+}
+document.getElementById('chatSendBtn').onclick = sendChatMessage;
+document.getElementById('chatInput').addEventListener('keydown', (e) => {
+  if(e.key === 'Enter') sendChatMessage();
+});
+document.getElementById('chatClearBtn').onclick = () => {
+  chatHistory = [];
+  persistSet('formaChatHistory', chatHistory);
+  renderChatMessages();
+};
+checkChatReady();
+
+loadSettings();
+checkAssessReady();
+updateVisualizeAvailability();
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  });
+}
+</script>
+</body>
+</html>
